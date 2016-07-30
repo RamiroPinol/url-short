@@ -3,6 +3,7 @@ var app = express();
 var mongo = require("mongodb").MongoClient
 var url = "mongodb://localhost:27017/test"
 var async = require("async");
+var validator = require("validator");
 
 function main(input, res, callback) {
     var input = input;
@@ -68,9 +69,25 @@ function main(input, res, callback) {
     })
 };
 
+        
 app.get('/:url*', function (req, res) {
-    var dire = req.url.slice(1);
-    main(dire, res)
+    var input = req.url.slice(1);
+    var is_url = isNaN(Number(input));
+    if (!is_url) {
+        main(input, res);
+        console.log(input)
+    } else {
+        var div = input.indexOf("http://");
+        var pre = input.slice(0, div);
+        var url = input.slice(div);
+        //validator validates some bad URLs
+        if (pre == "new/" && validator.isURL(url)) {
+            main(url, res);
+        } else {
+            res.send("ERROR: invalid syntax or URL")
+        }
+    }
+    
 });
 
 app.listen(process.env.PORT || 8080, function () {
